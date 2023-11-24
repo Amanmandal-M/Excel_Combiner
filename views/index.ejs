@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel File Uploader</title>
+    <style>
+        /* Add your custom styles here */
+
+        h2 {
+            font-size: 28px;
+        }
+
+        #dropzone {
+            border: 2px dashed #cccccc;
+            height: 300px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            background-color: blanchedalmond;
+        }
+    
+        #loader {
+            display: none;
+            text-align: center;
+        }
+    
+        #loader .spinner {
+            border: 8px solid rgba(0, 0, 0, 0.1);
+            border-left: 8px solid #333;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+    
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
+        button {
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            padding: 5px;
+            margin: auto;
+            margin-top: 10px;
+            width: 100px;
+            font-size: 22px;
+            background-color: aliceblue;
+            border-radius: 20px;
+        }
+
+
+    </style>
+</head>
+
+<body>
+    <div id="dropzone" onclick="openFileInput()">
+        <h2>Drag and Drop Excel Files Here</h2>
+        <form action="/" method="post" enctype="multipart/form-data" id="uploadForm">
+            <input type="file" name="excelFiles" multiple style="display: none;" id="fileInput"
+                onchange="filesSelected()">
+            <div id="loader">
+                <div class="spinner"></div>
+                Uploading...
+            </div>
+            <!-- Add this where you want to display the file list -->
+            <ul id="fileList"></ul>
+        </form>
+    </div>
+    <button type="button" onclick="uploadFiles()">Submit</button>
+
+    <script>
+        function openFileInput() {
+            const fileInput = document.getElementById('fileInput');
+            fileInput.click();
+        }
+
+        function filesSelected() {
+            const fileInput = document.getElementById('fileInput');
+            const files = fileInput.files;
+
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+
+            for (let i = 0; i < files.length; i++) {
+                const listItem = document.createElement('li');
+                listItem.textContent = files[i].name;
+                fileList.appendChild(listItem);
+            }
+        }
+
+        function uploadFiles() {
+            const fileInput = document.getElementById('fileInput');
+            const files = fileInput.files;
+
+            if (files.length > 0) {
+                const formData = new FormData();
+
+                for (let i = 0; i < files.length; i++) {
+                    formData.append('excelFiles', files[i]);
+                }
+
+                // Display loader
+                const loader = document.getElementById('loader');
+                loader.style.display = 'block';
+
+                fetch('/', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loader
+                    loader.style.display = 'none';
+                    
+                    const fileList = document.getElementById('fileList');
+                    fileList.innerHTML = '';
+
+                        // Alert user about successful upload
+                        alert(data.Message);
+
+                        // Trigger file download
+                        setTimeout(() => {
+                            window.location.href = '/download';
+                        }, 2500);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred during file upload.');
+
+                        // Hide loader on error
+                        loader.style.display = 'none';
+                    });
+            } else {
+                alert('Please select at least one file.');
+            }
+        }
+
+        // Handle drag and drop events
+        const dropzone = document.getElementById('dropzone');
+        dropzone.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            dropzone.style.border = '2px dashed #ff4500';
+        });
+
+        dropzone.addEventListener('dragleave', function () {
+            dropzone.style.border = '2px dashed #cccccc';
+        });
+
+        dropzone.addEventListener('drop', function (e) {
+            e.preventDefault();
+            dropzone.style.border = '2px dashed #cccccc';
+
+            const files = e.dataTransfer.files;
+            document.getElementById('fileInput').files = files;
+            filesSelected(); // Update the file list when files are dropped
+        });
+
+        // Prevent the default form submission
+        const uploadForm = document.getElementById('uploadForm');
+        uploadForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Check if files are selected before submitting
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput.files.length === 0) {
+                alert('Please select at least one file.');
+            } else {
+                uploadFiles();
+            }
+        });
+    </script>
+</body>
+
+</html>
