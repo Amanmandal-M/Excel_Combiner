@@ -14,18 +14,18 @@
 
         #dropzone {
             border: 2px dashed #cccccc;
-            height: 300px;
+            height: auto;
             padding: 20px;
             text-align: center;
             cursor: pointer;
             background-color: blanchedalmond;
         }
-    
+
         #loader {
             display: none;
             text-align: center;
         }
-    
+
         #loader .spinner {
             border: 8px solid rgba(0, 0, 0, 0.1);
             border-left: 8px solid #333;
@@ -35,12 +35,17 @@
             animation: spin 1s linear infinite;
             margin: 20px auto;
         }
-    
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
-    
+
         button {
             text-align: center;
             display: flex;
@@ -54,7 +59,11 @@
             border-radius: 20px;
         }
 
-
+        #fileInputMessage {
+            font-size: 16px;
+            color: red;
+            margin-top: 10px;
+        }
     </style>
 </head>
 
@@ -70,6 +79,7 @@
             </div>
             <!-- Add this where you want to display the file list -->
             <ul id="fileList"></ul>
+            <div id="fileInputMessage"></div>
         </form>
     </div>
     <button type="button" onclick="uploadFiles()">Submit</button>
@@ -85,12 +95,19 @@
             const files = fileInput.files;
 
             const fileList = document.getElementById('fileList');
-            fileList.innerHTML = '';
+            const fileInputMessage = document.getElementById('fileInputMessage');
 
-            for (let i = 0; i < files.length; i++) {
-                const listItem = document.createElement('li');
-                listItem.textContent = files[i].name;
-                fileList.appendChild(listItem);
+            if (files.length > 0) {
+                for (let i = 0; i < files.length; i++) {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = files[i].name;
+                    fileList.appendChild(listItem);
+                }
+                // Clear any previous error message
+                fileInputMessage.textContent = '';
+            } else {
+                // Display error message
+                fileInputMessage.textContent = 'Please select at least one file.';
             }
         }
 
@@ -113,13 +130,13 @@
                     method: 'POST',
                     body: formData
                 })
-                .then(response => response.json())
-                .then(data => {
-                    // Hide loader
-                    loader.style.display = 'none';
-                    
-                    const fileList = document.getElementById('fileList');
-                    fileList.innerHTML = '';
+                    .then(response => response.json())
+                    .then(data => {
+                        // Hide loader
+                        loader.style.display = 'none';
+
+                        const fileList = document.getElementById('fileList');
+                        fileList.innerHTML = '';
 
                         // Alert user about successful upload
                         alert(data.Message);
